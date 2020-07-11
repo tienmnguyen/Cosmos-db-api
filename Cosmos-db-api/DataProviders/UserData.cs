@@ -19,14 +19,49 @@ namespace Cosmos_db_api.DataProviders
         {
             this._container = dbClient.GetContainer(databaseName, containerName);
         }
-        //TODO add call to data provider
+
         public async Task<List<string>> CreateAsync(Cosmos_db_api.Models.User user)
         {
-            return null;
+            var errMsgs = new List<string>();
+            try
+            {
+                user.id = Guid.NewGuid();
+                var ret = await this._container.CreateItemAsync<Models.User>(user);
+            }
+            catch (CosmosException ex)
+            {
+                errMsgs.Add($"Error creating user: {ex.Message}");
+            }
+            return errMsgs;
         }
         public async Task<UserGet> GetByEmailAsync(string email)
         {
-            return null;
+            UserGet userGet = new UserGet();
+            try
+            {
+                QueryDefinition queryDefinition = new QueryDefinition("select * from User u where u.EmailAddress = @email")
+                     .WithParameter("@email", email);
+                FeedIterator<Cosmos_db_api.Models.User> feedIterator = this._container.GetItemQueryIterator<Cosmos_db_api.Models.User>(
+                    queryDefinition);
+
+                while (feedIterator.HasMoreResults)
+                {
+                    foreach (var user in await feedIterator.ReadNextAsync())
+                    {
+                        userGet.UserId = user.id.ToString();
+                        userGet.Name = user.FirstName + (string.IsNullOrEmpty(user.MiddleName) ? String.Empty : " " + user.MiddleName) +
+                            " " + user.LastName;
+                        userGet.PhoneNumber = user.PhoneNumber;
+                        userGet.EmailAddress = user.EmailAddress;
+                        break;
+                    }
+                }
+            }
+            catch (CosmosException ex)
+            {
+                userGet.ErrorMessages.Add($"Error getting user by email: " + ex.Message);
+            }
+            return userGet;
         }
     }
 }

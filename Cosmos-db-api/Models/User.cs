@@ -8,8 +8,7 @@ namespace Cosmos_db_api.Models
 {
     public class User
     {
-        [JsonProperty(PropertyName = "id")]
-        public string UserId { get; set; }
+        public Guid id { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }
@@ -19,7 +18,10 @@ namespace Cosmos_db_api.Models
     public class UserGet
     {
         public List<string> ErrorMessages { get; set; }
-        public User User { get; set; }
+        public string UserId { get; set; }
+        public string Name { get; set; }
+        public string PhoneNumber { get; set; }
+        public string EmailAddress { get; set; }
 
         public UserGet()
         {
