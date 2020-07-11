@@ -20,19 +20,20 @@ namespace Cosmos_db_api.DataProviders
             this._container = dbClient.GetContainer(databaseName, containerName);
         }
 
-        public async Task<List<string>> CreateAsync(Cosmos_db_api.Models.User user)
+        public async Task<UserReturn> CreateAsync(Cosmos_db_api.Models.User user)
         {
-            var errMsgs = new List<string>();
+            var userRet = new UserReturn();
             try
             {
                 user.id = Guid.NewGuid();
-                var ret = await this._container.CreateItemAsync<Models.User>(user);
+                var userResp = await this._container.CreateItemAsync<Models.User>(user, new PartitionKey(user.id.ToString()));
+                userRet.Id = ((Models.User)userResp.Resource).id;
             }
             catch (CosmosException ex)
             {
-                errMsgs.Add($"Error creating user: {ex.Message}");
+                userRet.ErrorMessages.Add($"Error creating user: {ex.Message}");
             }
-            return errMsgs;
+            return userRet;
         }
         public async Task<UserGet> GetByEmailAsync(string email)
         {
@@ -62,6 +63,19 @@ namespace Cosmos_db_api.DataProviders
                 userGet.ErrorMessages.Add($"Error getting user by email: " + ex.Message);
             }
             return userGet;
+        }
+        public async Task<List<string>> DeleteAsync(Guid id)
+        {
+            var errMsgs = new List<string>();
+            try
+            {
+                var ret = await this._container.DeleteItemAsync<Models.User>(id.ToString(), new PartitionKey(id.ToString()));
+            }
+            catch (CosmosException ex)
+            {
+                errMsgs.Add($"Error deleting user: " + ex.Message);
+            }
+            return errMsgs;
         }
     }
 }

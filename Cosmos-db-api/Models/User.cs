@@ -28,4 +28,14 @@ namespace Cosmos_db_api.Models
             ErrorMessages = new List<string>();
         }
     }
+    public class UserReturn
+    {
+        public List<string> ErrorMessages { get; set; }
+        public Guid Id { get; set; }
+
+        public UserReturn()
+        {
+            ErrorMessages = new List<string>();
+        }
+    }
 }

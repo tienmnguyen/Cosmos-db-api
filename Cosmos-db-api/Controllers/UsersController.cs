@@ -21,23 +21,23 @@ namespace Cosmos_db_api.Controllers
         }
 
         [HttpPost]
-        public async Task<List<string>> CreateAsync(User user)
+        public async Task<UserReturn> CreateAsync(User user)
         {
-            var ret = new List<string>();
+            var userRet = new UserReturn();
             if (String.IsNullOrEmpty(user?.FirstName))
             {
-                ret.Add("The User First Name is required");
+                userRet.ErrorMessages.Add("The User First Name is required");
             }
             if (String.IsNullOrEmpty(user?.LastName))
             {
-                ret.Add("The User Last Name is required");
+                userRet.ErrorMessages.Add("The User Last Name is required");
             }
             if (String.IsNullOrEmpty(user?.EmailAddress))
             {
-                ret.Add("The User email address is required");
+                userRet.ErrorMessages.Add("The User email address is required");
             }
-            ret = await _userService.CreateAsync(user);
-            return ret;
+            userRet = await _userService.CreateAsync(user);
+            return userRet;
         }
 
         [HttpGet]
@@ -52,6 +52,13 @@ namespace Cosmos_db_api.Controllers
             ret = await _userService.GetByEmailAsync(email);
             return ret;
 
+        }
+
+        [HttpDelete ("{id}")]
+        public async Task<List<string>> DeleteAsync([FromRoute] Guid id)
+        {
+            var errMsgs = await _userService.DeleteAsync(id);
+            return errMsgs;
         }
     }
 }
