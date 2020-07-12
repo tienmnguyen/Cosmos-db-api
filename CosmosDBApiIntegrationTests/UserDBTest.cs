@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using CosmosDBAPI.Models;
 using Xunit;
+using System.Collections.Generic;
 
 namespace CosmosDBAPI.IntegrationTests
 {
@@ -17,7 +18,7 @@ namespace CosmosDBAPI.IntegrationTests
         }
 
         [Fact]
-        public async Task GetUserbyEmailAsync_DataFound()
+        public async Task GetUserByEmailAsync_DataFound()
         {
             // Arrange
             var request = "/api/Users?email=matt@awesomedomain.com";
@@ -33,7 +34,7 @@ namespace CosmosDBAPI.IntegrationTests
         }
 
         [Fact]
-        public async Task GetUserbyEmailAsync_DataNotFound()
+        public async Task GetUserByEmailAsync_DataNotFound()
         {
             // Arrange
             var request = "/api/Users?email=matt1@awesomedomain.com";
@@ -53,15 +54,22 @@ namespace CosmosDBAPI.IntegrationTests
             // Arrange
             // check email does not exist
             var response = await _client.GetAsync("/api/Users?email=matt@awesomedomain.com").ConfigureAwait(false);
+
             response.EnsureSuccessStatusCode();
             var strResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var userGet = JsonConvert.DeserializeObject<UserGet>(strResponse);
-
+            if (userGet.ErrorMessages.Count > 0)
+                throw new Exception($"Error getting by email: {userGet.ErrorMessages[0]}");
             if (userGet.UserId != null)
             {
-                // dele
+                // delete if email exists, assume email is unique
                 response = await _client.DeleteAsync($"/api/Users/{userGet.UserId}").ConfigureAwait(false);
+
                 response.EnsureSuccessStatusCode();
+                strResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var errList = JsonConvert.DeserializeObject<List<string>>(strResponse);
+                if (errList.Count > 0)
+                    throw new Exception($"Error deleting: {errList[0]}");
             }
             var request = new User
             {
@@ -78,8 +86,11 @@ namespace CosmosDBAPI.IntegrationTests
             response.EnsureSuccessStatusCode();
             strResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var userNew = JsonConvert.DeserializeObject<UserReturn>(strResponse);
+            if (userNew.ErrorMessages.Count > 0)
+                throw new Exception($"Error adding user: {userNew.ErrorMessages[0]}");
             // get back and compare
             response = await _client.GetAsync("/api/Users?email=matt@awesomedomain.com").ConfigureAwait(false);
+
             response.EnsureSuccessStatusCode();
             strResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             userGet = JsonConvert.DeserializeObject<UserGet>(strResponse);

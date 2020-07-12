@@ -60,5 +60,12 @@ namespace CosmosDBAPI.Controllers
             var errMsgs = await _userService.DeleteAsync(id);
             return errMsgs;
         }
+
+        [HttpPost("{id}")]
+        public async Task<List<string>> UpdateAsync([FromRoute] Guid id, User user)
+        {
+            var errMsgs = await _userService.UpdateAsync(id, user);
+            return errMsgs;
+        }
     }
 }

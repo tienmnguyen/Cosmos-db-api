@@ -77,5 +77,20 @@ namespace CosmosDBAPI.DataProviders
             }
             return errMsgs;
         }
+
+        public async Task<List<string>> UpdateAsync(Guid id, Models.User user)
+        {
+            var errMsgs = new List<string>();
+            try
+            {
+                user.id = id;
+                var ret = await this._container.ReplaceItemAsync<Models.User>(user, id.ToString());
+            }
+            catch (CosmosException ex)
+            {
+                errMsgs.Add($"Error updating user: " + ex.Message);
+            }
+            return errMsgs;
+        }
     }
 }
