@@ -54,7 +54,7 @@ namespace CosmosDBAPI.DataProviders
                             " " + user.LastName;
                         userGet.PhoneNumber = user.PhoneNumber;
                         userGet.EmailAddress = user.EmailAddress;
-                        break;
+                        break; // assuming email is unique, need to implement unique index?
                     }
                 }
             }
